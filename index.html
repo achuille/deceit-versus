@@ -5,7 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deceit Stats Comparator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    
+    
+    
+    
+    
     <style>
+
+
+
+
+
+
+
+.share-container {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+            animation: fadeIn 1s;
+        }
+
+        .share-discord-btn {
+            background: #5865F2;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .share-discord-btn:hover {
+            background: #4752c4;
+        }
+
+        .share-discord-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+
+
+
+
+
+
         :root {
             --primary: #1a1a1a;
             --secondary: #2d2d2d;
@@ -244,6 +289,25 @@
         </div>
     </div>
 
+
+
+    <div class="stats-container" id="stats-container">
+    </div>
+
+    <div class="share-container" id="share-container">
+        <button class="share-discord-btn" onclick="shareToDiscord()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-discord" viewBox="0 0 16 16">
+                <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/>
+            </svg>
+            Partager sur Discord
+        </button>
+    </div>
+
+
+
+
+
+
     <script>
         const statsContainer = document.getElementById('stats-container');
         const loading = document.querySelector('.loading');
@@ -350,11 +414,148 @@
         }
 
         vsButton.addEventListener('click', compareStats);
+
+
+
+
+
+
+
+        function formatDiscordMessage(p1Data, p2Data) {
+            const stats = [
+                { label: '🏆 Victoires Totales', p1: p1Data.stats.s_total_wins_inf + p1Data.stats.s_total_wins_inno, p2: p2Data.stats.s_total_wins_inf + p2Data.stats.s_total_wins_inno },
+                { label: '🎮 Parties Jouées', p1: p1Data.stats.games_played, p2: p2Data.stats.games_played },
+                { label: '⚔️ Exécutions', p1: p1Data.stats.s_executions, p2: p2Data.stats.s_executions },
+                { label: '💀 Morts', p1: p1Data.stats.s_executed, p2: p2Data.stats.s_executed },
+                { label: '🎯 Votes Corrects', p1: p1Data.stats.s_votes_correct, p2: p2Data.stats.s_votes_correct },
+                { label: '🏃 Évasions', p1: p1Data.stats.escapes, p2: p2Data.stats.escapes },
+                { label: '📊 Niveau', p1: p1Data.level, p2: p2Data.level },
+                { label: '⭐ Prestige', p1: p1Data.prestige, p2: p2Data.prestige },
+                { label: '🏅 Réputation', p1: p1Data.reputation, p2: p2Data.reputation }
+            ];
+
+            let message = `# Versus Deceit 1 \n\n`;
+            message += `## 🔵 ${p1Data.name} VS 🔴 ${p2Data.name}\n\n`;
+
+            stats.forEach(stat => {
+                const winner = calculateWinner(stat.p1, stat.p2);
+                const p1Value = ` \`${formatStat(stat.p1)}\`${winner === 'p1' ? ' 🔵' : ''}`;
+                const p2Value = ` \`${formatStat(stat.p2)}\`${winner === 'p2' ? ' 🔴' : ''}`;
+                message += `### ${stat.label}\n${p1Value} | ${p2Value}\n`;
+            });
+
+            return message;
+        }
+
+        async function shareToDiscord() {
+            if (!currentComparisonData) return;
+            
+            const { p1Data, p2Data } = currentComparisonData;
+            const webhookUrl = 'https://discord.com/api/webhooks/1300118688921423893/Sg-iF-WrdTZBjfJxcUzlI6oI9HmoQQYsZWMLjSzQ5KiQEPhTTMPK5oFyjqqfQ9JhY6gi';
+            
+            try {
+                const message = formatDiscordMessage(p1Data, p2Data);
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: message
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'envoi sur Discord');
+                }
+
+                alert('Comparaison partagée sur Discord !');
+            } catch (error) {
+                alert('Erreur lors du partage : ' + error.message);
+            }
+        }
+
+        async function compareStats() {
+            const player1Id = document.getElementById('player1-id').value;
+            const player2Id = document.getElementById('player2-id').value;
+
+            if (!player1Id || !player2Id) {
+                alert('Veuillez entrer les IDs des deux joueurs');
+                return;
+            }
+
+            error1.textContent = '';
+            error2.textContent = '';
+            loading.style.display = 'block';
+            statsContainer.style.display = 'none';
+            document.getElementById('share-container').style.display = 'none';
+
+            try {
+                const [player1Data, player2Data] = await Promise.all([
+                    fetchPlayerData(player1Id),
+                    fetchPlayerData(player2Id)
+                ]);
+
+                // Stocker les données pour le partage
+                currentComparisonData = { p1Data: player1Data, p2Data: player2Data };
+
+                statsContainer.innerHTML = `
+                    <div class="player-card player1-card animate__animated animate__fadeIn">
+                        <h2>${player1Data.name}</h2>
+                    </div>
+                    <div class="player-card player2-card animate__animated animate__fadeIn">
+                        <h2>${player2Data.name}</h2>
+                    </div>
+                    <div class="versus-container animate__animated animate__fadeIn">
+                        <h2>Comparaison</h2>
+                        ${createVersusSection(player1Data, player2Data)}
+                    </div>
+                `;
+
+                statsContainer.style.display = 'block';
+                document.getElementById('share-container').style.display = 'block';
+            } catch (error) {
+                if (error.message.includes('player1')) {
+                    error1.textContent = error.message;
+                } else if (error.message.includes('player2')) {
+                    error2.textContent = error.message;
+                } else {
+                    alert(error.message);
+                }
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+
+
+
+
+
+
     </script>
+
+
+
+
+<div class="share-container" id="share-container">
+    <button class="share-discord-btn" onclick="shareToDiscord()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-discord" viewBox="0 0 16 16">
+            <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/>
+        </svg>
+        Partager sur Discord
+    </button>
+</div>
+
+
+
 
     <div style="text-align: center; margin-top: 2rem; color: var(--text);">
         <p>Fait à 90% par Claude, 9% par Chat GPT et 1% par achhille.</p>
     </div>
+
+
+
     
 </body>
 </html>
